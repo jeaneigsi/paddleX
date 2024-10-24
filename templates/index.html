@@ -1,0 +1,174 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCR Magic: Extract Text from Images</title>
+    <link rel="stylesheet" href="../static/css/index.css">
+</head>
+<body>
+    <div class="container">
+      <h1>OCR Magic</h1>
+      <div class="upload-area" id="uploadArea">
+        <input type="file" id="fileInput" multiple accept="image/*" style="display: none;">
+        <button class="upload-btn" onclick="document.getElementById('fileInput').click()">Upload Images</button>
+        <p>or drag and drop images here</p>
+      </div>
+      <div class="preview-area">
+        <div class="image-preview" id="imagePreview"></div>
+        <div class="text-preview" id="textPreview"></div>
+      </div>
+      <div class="slider-controls">
+        <button class="slider-btn" id="prevBtn" disabled>&lt;</button>
+        <button class="slider-btn" id="nextBtn" disabled>&gt;</button>
+      </div>
+      <div class="controls">
+        <button class="submit-btn" id="submitBtn">Extract Text</button>
+        <button class="enhance-btn" id="enhanceBtn">Enhance Results</button>
+      </div>
+    </div>
+    <div class="glassmorphism" id="glassmorphism">
+      <div class="spinner"></div>
+    </div>
+  
+    <script>
+      const uploadArea = document.getElementById('uploadArea');
+      const fileInput = document.getElementById('fileInput');
+      const imagePreview = document.getElementById('imagePreview');
+      const textPreview = document.getElementById('textPreview');
+      const submitBtn = document.getElementById('submitBtn');
+      const enhanceBtn = document.getElementById('enhanceBtn');
+      const glassmorphism = document.getElementById('glassmorphism');
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+  
+      let currentImageIndex = 0;
+      let uploadedImages = [];
+      let extractedTexts = [];
+  
+      uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+      });
+  
+      uploadArea.addEventListener('dragleave', () => {
+        uploadArea.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+      });
+  
+      uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+        handleFiles(e.dataTransfer.files);
+      });
+  
+      fileInput.addEventListener('change', () => {
+        handleFiles(fileInput.files);
+      });
+  
+      function handleFiles(files) {
+        uploadedImages = Array.from(files);
+        currentImageIndex = 0;
+        extractedTexts = new Array(uploadedImages.length).fill(''); // Initialize extractedTexts array with empty strings
+        updateImagePreview();
+        updateSliderControls();
+      }
+
+
+  
+      function updateImagePreview() {
+        if (uploadedImages.length > 0) {
+          const img = document.createElement('img');
+          img.src = URL.createObjectURL(uploadedImages[currentImageIndex]);
+          imagePreview.innerHTML = '';
+          imagePreview.appendChild(img);
+        }
+      }
+  
+      function updateSliderControls() {
+        prevBtn.disabled = currentImageIndex === 0;
+        nextBtn.disabled = currentImageIndex === uploadedImages.length - 1;
+      }
+  
+      prevBtn.addEventListener('click', () => {
+        if (currentImageIndex > 0) {
+          currentImageIndex--;
+          updateImagePreview();
+          updateSliderControls();
+          updateTextPreview();
+        }
+      });
+  
+      nextBtn.addEventListener('click', () => {
+        if (currentImageIndex < uploadedImages.length - 1) {
+          currentImageIndex++;
+          updateImagePreview();
+          updateSliderControls();
+          updateTextPreview();
+        }
+      });
+  
+    //   submitBtn.addEventListener('click', () => {
+    //     glassmorphism.classList.add('active');
+    //     setTimeout(() => {
+    //       extractedTexts = uploadedImages.map(() => 'Extracted text will appear here.');
+    //       updateTextPreview();
+    //       glassmorphism.classList.remove('active');
+    //     }, 2000);
+    //   });
+  
+      enhanceBtn.addEventListener('click', () => {
+        glassmorphism.classList.add('active');
+        setTimeout(() => {
+          extractedTexts[currentImageIndex] = 'Enhanced text result for image ' + (currentImageIndex + 1);
+          updateTextPreview();
+          glassmorphism.classList.remove('active');
+        }, 2000);
+      });
+
+      submitBtn.addEventListener('click', async () => {
+            glassmorphism.classList.add('active');
+            setTimeout(async () => {
+                try {
+                    const formData = new FormData();
+                    // Assure-toi de remplacer 'imageInput' par l'ID ou la classe de ton champ d'upload
+                    const imageFile = uploadedImages[currentImageIndex];
+                    if (imageFile) {
+                        formData.append('image', imageFile);
+
+                        const response = await fetch('http://localhost/ocr', {  // Remplace par l'URL de ton API
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Erreur lors de l\'extraction du texte');
+                        }
+
+                        const result = await response.json();
+                        const extractedText = result.rec_text.join(" "); // Structure de la réponse
+
+                        // Mettez à jour l'aperçu du texte extrait
+                        //extractedTexts = [extractedText]; Supposons que tu n'as qu'une seule image*
+                        extractedTexts[currentImageIndex] = extractedText
+                        updateTextPreview();
+                    } else {
+                        console.error('Aucune image sélectionnée.');
+                    }
+                } catch (error) {
+                    console.error('Erreur:', error);
+                } finally {
+                    glassmorphism.classList.remove('active');
+                }
+            }, 2000);
+        });
+
+  
+      function updateTextPreview() {
+        if (extractedTexts.length > 0) {
+          textPreview.textContent = extractedTexts[currentImageIndex];
+        } else {
+          textPreview.textContent = '';
+        }
+      }
+    </script>
+  </body>
+  </html>

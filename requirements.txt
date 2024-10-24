@@ -1,0 +1,7 @@
+fastapi
+Pillow
+numpy
+starlette
+uvicorn
+uvicorn[standard]
+fastapi[standard]

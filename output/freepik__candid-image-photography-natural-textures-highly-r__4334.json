@@ -1,0 +1,32 @@
+{
+    "input_path": "/teamspace/studios/this_studio/.paddlex/temp/tmptvt_arzw.png",
+    "dt_polys": [
+        [
+            [
+                568,
+                375
+            ],
+            [
+                590,
+                372
+            ],
+            [
+                596,
+                419
+            ],
+            [
+                574,
+                422
+            ]
+        ]
+    ],
+    "dt_scores": [
+        0.7442150897828882
+    ],
+    "rec_text": [
+        "026"
+    ],
+    "rec_score": [
+        0.3037889301776886
+    ]
+}
